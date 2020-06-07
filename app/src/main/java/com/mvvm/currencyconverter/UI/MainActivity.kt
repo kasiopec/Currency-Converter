@@ -17,6 +17,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 
 
 class MainActivity : AppCompatActivity(), OnItemClickListener {
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
     lateinit var baseCurrency : String
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -41,6 +43,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         //recycleView setup
         recyclerView = findViewById(R.id.recyclerView)
         recyclerAdapter = CurrenciesAdapter(rates, curRates, this)
+        recyclerAdapter.setHasStableIds(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = recyclerAdapter
 
@@ -71,39 +74,19 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
                 }
                 println("Code: $response")
                 println(response.body())
-                //updated list of currency rates
-                val updatedRates = mutableListOf<Rate>()
-                //getting base currency
-                baseCurrency = response.body()!!.base
-                //EUR doesn't have rate value when base, had to add it manually
-                if(baseCurrency == "EUR"){
-                    updatedRates.add(Rate(baseCurrency, 1.0))
+
+                val result = requireNotNull(response.body())
+                if (recyclerAdapter.itemCount == 0) {
+                    recyclerAdapter.initialize(result.rates, result.base)
+                } else {
+                    // TODO Verify that the base in adapter is equal to the response base
+                    recyclerAdapter.updateRates(result.rates)
                 }
-                //creating list of Rate
-                for ((key, value) in response.body()!!.rates) {
-                    updatedRates.add(Rate(key, value))
-                }
-                //initial recyclerview data check
-                if (rates.size == 0 && curRates.size == 0) {
-                    recyclerAdapter.updateCurrencies(updatedRates)
-                    recyclerAdapter.updateCurrencyRates(updatedRates)
-                }
-                //recyclerAdapter.updateCurrencyRates(updatedRates)
-                //val areEqual = isEqual(rates, updatedRates)
-                val areEqual = isEqual2(rates, updatedRates)
-                println(areEqual)
-                println(rates)
-                println(updatedRates)
-                //checking if we got new rate values
-                if (!areEqual) {
-                    rates = updatedRates
-                    recyclerAdapter.updateCurrencyRates(rates)
-                    recyclerAdapter.updateCurrencies(rates)
-                    recyclerAdapter.swapItems(getIndex(baseCurrency),0)
-                }
+
                 val date = getCurrentDateTime()
                 updateText.text = "Updated at: " + date.toString("HH:mm:ss")
             }
+
             //method to catch failed calls
             override fun onFailure(call: Call<CurrencyData>, t: Throwable) {
                 println(t.message)
@@ -147,11 +130,9 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         return false
     }
 
-    override fun onItemClicked(rate: Rate, position: Int) {
+    override fun onBaseItemUpdated() {
         //requesting new rates for base currency
-        call = request.getCurrencyRates(rate.name)
-        //swapping items with each other
-        recyclerAdapter.swapItems(position, 0)
+        call = request.getCurrencyRates(recyclerAdapter.baseItem.currency)
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
     }
