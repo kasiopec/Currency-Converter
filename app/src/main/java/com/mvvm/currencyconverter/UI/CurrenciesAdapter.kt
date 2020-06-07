@@ -10,7 +10,6 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
-import com.mvvm.currencyconverter.data.Rate
 import java.util.*
 import kotlin.math.abs
 
@@ -31,7 +30,7 @@ class CurrenciesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrenciesViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.new_currency_item, parent, false)
+            .inflate(R.layout.currency_item, parent, false)
         return CurrenciesViewHolder(view)
     }
 
@@ -73,7 +72,7 @@ class CurrenciesAdapter(
                 continue;
             }
 
-            notifyItemChanged(position)
+           notifyItemChanged(position)
         }
 
         newestRates = rates
@@ -95,7 +94,6 @@ class CurrenciesAdapter(
             // Nothing to update
             return
         }
-
         baseItem = item
         val originalPosition = items.indexOf(item)
         Collections.swap(items, originalPosition, 0)
@@ -110,21 +108,23 @@ class CurrenciesAdapter(
         val amountFormatted = "%.2f".format(amount)
 
         holder.currencyName.text = item.currency
-        holder.currencyRate.text = "%.2f".format(Locale.getDefault(), rate)
+        holder.currencyRate.text = "1:$rate"
         holder.currencyValue.text = amountFormatted
         holder.etCurrencyValue.setText(amountFormatted)
 
         if (item == baseItem) {
+            holder.currencyRate.text = getRate(item.currency).toString()
             holder.currencyValue.visibility = View.GONE
             holder.etCurrencyValue.visibility = View.VISIBLE
         } else {
             holder.currencyValue.visibility = View.VISIBLE
             holder.etCurrencyValue.visibility = View.GONE
+            holder.currencyRate.visibility = View.VISIBLE
         }
 
         holder.itemView.setOnClickListener {
             updateBaseItem(item)
-            listener.onBaseItemUpdated()
+            listener.onBaseItemUpdated(item)
         }
 
         holder.etCurrencyValue.onSubmit {
@@ -134,7 +134,8 @@ class CurrenciesAdapter(
 
             // TODO guard against non-numeric input
             baseAmount = holder.etCurrencyValue.text.toString().toDouble()
-            notifyItemRangeChanged(1, items.size - 1)
+            notifyItemRangeChanged(0, items.size)
+            holder.etCurrencyValue.hideKeyboard()
         }
     }
 

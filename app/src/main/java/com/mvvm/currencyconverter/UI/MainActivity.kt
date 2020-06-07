@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         return false
     }
 
-    override fun onBaseItemUpdated() {
+    override fun onBaseItemUpdated(item : RateItem) {
         //requesting new rates for base currency
         call = request.getCurrencyRates(recyclerAdapter.baseItem.currency)
         //scrolling to recyclerview top
