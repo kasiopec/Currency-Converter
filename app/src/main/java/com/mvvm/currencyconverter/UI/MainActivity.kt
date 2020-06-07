@@ -7,28 +7,27 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
-import com.mvvm.currencyconverter.data.CurrencyData
-import com.mvvm.currencyconverter.data.CurrencyEndpointAPI
-import com.mvvm.currencyconverter.data.Rate
-import com.mvvm.currencyconverter.data.ServiceBuilder
+import com.mvvm.currencyconverter.controller.Contract
+import com.mvvm.currencyconverter.controller.DataHandler
+import com.mvvm.currencyconverter.data.*
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
 
-
-class MainActivity : AppCompatActivity(), OnItemClickListener {
+class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     lateinit var request: CurrencyEndpointAPI
     var rates = mutableListOf<Rate>()
     var curNames = mutableListOf<String>()
     var curRates = mutableListOf<Double>()
     lateinit var recyclerView: RecyclerView
-    lateinit var recyclerAdapter: CurrenciesAdapter
+    //lateinit var recyclerAdapter: CurrenciesAdapter
+    lateinit var recyclerAdapter: TestAdapter
     lateinit var call: Call<CurrencyData>
     lateinit var baseCurrency : String
+    private var mDataHandler: DataHandler? = null
 
 
 
@@ -36,18 +35,20 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val stopCall = false //handler stopper
-        val mHandler = Handler(Looper.getMainLooper())
+        var mHandler = Handler(Looper.getMainLooper())
         //creating first call for EUR currency
         request = ServiceBuilder.buildService(CurrencyEndpointAPI::class.java)
         call = request.getCurrencyRates("EUR")
         //recycleView setup
         recyclerView = findViewById(R.id.recyclerView)
-        recyclerAdapter = CurrenciesAdapter(this)
+        //recyclerAdapter = CurrenciesAdapter(this)
+        recyclerAdapter = TestAdapter(mDataHandler!!.getItemsData(), mDataHandler!!.getRates(), mDataHandler!!.receiveBaseItem(), this)
         recyclerAdapter.setHasStableIds(false)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = recyclerAdapter
-
-
+        mDataHandler = DataHandler(this, recyclerAdapter, this)
+        mDataHandler!!.startFetching()
+        println("List from dataHandler"+ mDataHandler!!.getItemsData())
         //Handler to execute endpoint data fetch every second
         //(notifications from the API about the new data would be better though)
         mHandler.post(object : Runnable {
@@ -105,36 +106,27 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         return Calendar.getInstance().time
     }
 
-    //getting index of the base currency
-    fun getIndex(wanted: String?): Int {
-        for (i in 0 until rates.size) {
-            if (rates[i].name == wanted) {
-                return i
-            }
-        }
-        return 0
-    }
-    //checks if elements and order is the same
-    fun <T> isEqual(first: List<T>, second: List<T>): Boolean {
-        if (first.size != second.size) {
-            return false
-        }
-        return first.zip(second).all { (x, y) -> x == y }
-    }
-
-    //check if 2 lists have the same items (resource heavy)
-    fun <T> isEqual2(first: List<T>, second: List<T>): Boolean {
-        if(first.containsAll(second) && second.containsAll(first)) {
-            return true
-        }
-        return false
-    }
-
     override fun onBaseItemUpdated(item : RateItem) {
         //requesting new rates for base currency
         call = request.getCurrencyRates(recyclerAdapter.baseItem.currency)
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
+    }
+
+    override fun onBaseItemUpdated(item: RateItemObject) {
+        //requesting new rates for base currency
+        call = request.getCurrencyRates(recyclerAdapter.baseItem.currency)
+        //scrolling to recyclerview top
+        recyclerView.layoutManager!!.scrollToPosition(0)
+    }
+
+    override fun updateTimerText() {
+        textView4.text = mDataHandler?.getUpdateTime()?.toString("HH:mm:ss")
+    }
+
+    override fun updateRecyclerViewData() {
+        //TODO add refresh data method inside adapter and notifydatasetchanged?
+        //recyclerAdapter.refreshData(data)
     }
 }
 

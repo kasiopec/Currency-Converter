@@ -34,9 +34,9 @@ class CurrenciesAdapter(
         return CurrenciesViewHolder(view)
     }
 
-    override fun getItemId(position: Int): Long {
-        return items[position].currency.hashCode().toLong()
-    }
+//    override fun getItemId(position: Int): Long {
+//        return items[position].currency.hashCode().toLong()
+//    }
 
     fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
@@ -72,7 +72,7 @@ class CurrenciesAdapter(
                 continue;
             }
 
-           notifyItemChanged(position)
+            notifyItemChanged(position)
         }
 
         newestRates = rates
@@ -84,7 +84,7 @@ class CurrenciesAdapter(
 
     private fun getRate(currency: String): Double =
         if (currency == baseItem.currency) {
-             1.0
+            1.0
         } else {
             newestRates[currency] ?: 0.0
         }
@@ -98,6 +98,8 @@ class CurrenciesAdapter(
         val originalPosition = items.indexOf(item)
         Collections.swap(items, originalPosition, 0)
         notifyItemMoved(originalPosition, 0)
+        notifyItemChanged(0)
+
     }
 
     override fun onBindViewHolder(holder: CurrenciesViewHolder, position: Int) {
@@ -113,7 +115,7 @@ class CurrenciesAdapter(
         holder.etCurrencyValue.setText(amountFormatted)
 
         if (item == baseItem) {
-            holder.currencyRate.text = getRate(item.currency).toString()
+            holder.currencyRate.visibility = View.VISIBLE
             holder.currencyValue.visibility = View.GONE
             holder.etCurrencyValue.visibility = View.VISIBLE
         } else {
