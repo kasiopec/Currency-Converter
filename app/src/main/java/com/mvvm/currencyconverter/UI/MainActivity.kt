@@ -42,8 +42,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         call = request.getCurrencyRates("EUR")
         //recycleView setup
         recyclerView = findViewById(R.id.recyclerView)
-        recyclerAdapter = CurrenciesAdapter(rates, curRates, this)
-        recyclerAdapter.setHasStableIds(true)
+        recyclerAdapter = CurrenciesAdapter(this)
+        recyclerAdapter.setHasStableIds(false)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = recyclerAdapter
 

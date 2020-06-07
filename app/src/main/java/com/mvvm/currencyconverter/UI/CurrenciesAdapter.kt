@@ -8,26 +8,24 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
 import com.mvvm.currencyconverter.data.Rate
 import java.util.*
+import kotlin.math.abs
 
 data class RateItem(
-    val currency: String,
-    var amount: Double
+    val currency: String
 )
 
 class CurrenciesAdapter(
-    var rates: List<Rate>,
-    private var rateValues: List<Double>,
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<CurrenciesViewHolder>() {
     // Used for looking up the rates; updated frequently
-    lateinit var newestRates: Map<String, Double>
+    var newestRates: Map<String, Double> = hashMapOf()
 
     lateinit var baseItem: RateItem
+    var baseAmount = 10.0
 
     private val items = mutableListOf<RateItem>()
 
@@ -44,7 +42,7 @@ class CurrenciesAdapter(
     fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
 
-        baseItem = RateItem(currency = baseCurrency, amount = 10.0)
+        baseItem = RateItem(currency = baseCurrency)
         items.add(baseItem)
 
         for (rate in rates.keys) {
@@ -53,31 +51,32 @@ class CurrenciesAdapter(
                 continue
             }
 
-            items.add(RateItem(currency = rate, amount = 0.0))
+            items.add(RateItem(currency = rate))
         }
 
         updateRates(rates)
     }
 
+    // TODO Move this outside of activity and adapter to make it testable
     fun updateRates(rates: Map<String, Double>) {
-        newestRates = rates
-        updateAmounts()
-
-        // Update everything except the base item
-        notifyItemRangeChanged(1, items.size - 1)
-    }
-
-    private fun updateAmounts() {
-        for (item in items) {
+        for (position in 0 until items.size) {
+            val item = items[position]
             if (item == baseItem) {
                 // The base item amount isn't updated as it was entered by the user
                 continue;
             }
 
-            val rate = newestRates[item.currency]
+            val oldRate = newestRates[item.currency]
+            val newRate = rates[item.currency]
 
-            item.amount = if (rate != null) rate  * baseItem.amount else 0.0
+            if (oldRate != null && newRate != null && abs(oldRate - newRate) < 0.0005) {
+                continue;
+            }
+
+            notifyItemChanged(position)
         }
+
+        newestRates = rates
     }
 
     override fun getItemCount(): Int {
@@ -106,11 +105,14 @@ class CurrenciesAdapter(
     override fun onBindViewHolder(holder: CurrenciesViewHolder, position: Int) {
         val item = items[position]
         val rate = getRate(item.currency)
+        // TODO Don't do any computation in the adapter, it should simply present items
+        val amount = rate * baseAmount
+        val amountFormatted = "%.2f".format(amount)
 
         holder.currencyName.text = item.currency
         holder.currencyRate.text = "%.2f".format(Locale.getDefault(), rate)
-        holder.currencyValue.text = "%.2f".format(item.amount)
-        holder.etCurrencyValue.setText("%.2f".format(item.amount))
+        holder.currencyValue.text = amountFormatted
+        holder.etCurrencyValue.setText(amountFormatted)
 
         if (item == baseItem) {
             holder.currencyValue.visibility = View.GONE
@@ -118,23 +120,11 @@ class CurrenciesAdapter(
         } else {
             holder.currencyValue.visibility = View.VISIBLE
             holder.etCurrencyValue.visibility = View.GONE
-
         }
 
         holder.itemView.setOnClickListener {
             updateBaseItem(item)
             listener.onBaseItemUpdated()
-            /*listener.onItemClicked(rates[position], position)
-            if (position == 0) {
-                holder.etCurrencyValue.visibility = View.VISIBLE
-                holder.etCurrencyValue.setText(amount.toString())
-                holder.currencyValue.visibility = View.GONE
-            } else {
-                holder.etCurrencyValue.visibility = View.GONE
-                holder.currencyValue.visibility = View.VISIBLE
-            }
-
-             */
         }
 
         holder.etCurrencyValue.onSubmit {
@@ -143,8 +133,8 @@ class CurrenciesAdapter(
             }
 
             // TODO guard against non-numeric input
-            baseItem.amount = holder.etCurrencyValue.text.toString().toDouble()
-            notifyItemRangeChanged(1, items.size)
+            baseAmount = holder.etCurrencyValue.text.toString().toDouble()
+            notifyItemRangeChanged(1, items.size - 1)
         }
     }
 
@@ -161,7 +151,6 @@ class CurrenciesAdapter(
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
-
 }
 
 class CurrenciesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
