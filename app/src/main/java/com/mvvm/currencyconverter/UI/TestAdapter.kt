@@ -31,6 +31,11 @@ class TestAdapter(
         return items.size
     }
 
+    fun refreshData(rates : Map<String, Double>){
+        newestRates = rates
+        notifyItemRangeChanged(1, items.size-1)
+    }
+
     private fun getRate(currency: String): Double =
         if (currency == baseItem.currency) {
             1.0

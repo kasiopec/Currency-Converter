@@ -3,8 +3,7 @@ package com.mvvm.currencyconverter.controller
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import com.mvvm.currencyconverter.UI.CurrenciesAdapter
-import com.mvvm.currencyconverter.UI.TestAdapter
+
 import com.mvvm.currencyconverter.data.CurrencyData
 import com.mvvm.currencyconverter.data.CurrencyEndpointAPI
 import com.mvvm.currencyconverter.data.RateItemObject
@@ -15,41 +14,45 @@ import retrofit2.Response
 import java.util.*
 import kotlin.math.abs
 
-class DataHandler(val context : Context, val adapter : TestAdapter, val view : Contract.View):Contract.Presenter{
+class Presenter(val view : Contract.View):Contract.Presenter{
     private val items = mutableListOf<RateItemObject>()
-    lateinit var baseItem: RateItemObject
+    var baseItem = RateItemObject("")
     var newestRates: Map<String, Double> = hashMapOf()
-    val stopCall = false //handler stopper
+
+    val stopCall = false //handler stopper in case it's needed
     val mHandler = Handler(Looper.getMainLooper())
-    private lateinit var call: Call<CurrencyData>
+
+    //Retrofit initialization
     private val request: CurrencyEndpointAPI = ServiceBuilder.buildService(CurrencyEndpointAPI::class.java)
-
-    fun startFetching(){
-        mHandler.post(object : Runnable {
-            override fun run() {
-                fetchData()
-
-                mHandler.postDelayed(this, 1000)
-
-            }
-        })
-    }
+    private lateinit var call: Call<CurrencyData>
 
     override fun getItemsData() : MutableList<RateItemObject> {
         return items
+    }
+
+    override fun updateJsonCall(currency: String) {
+        call = request.getCurrencyRates(currency)
     }
 
     fun getRates() : Map<String, Double>{
         return newestRates
     }
 
-    fun receiveBaseItem() : RateItemObject{
+    override fun receiveBaseItem() : RateItemObject{
         return baseItem
     }
 
+    fun startFetching(){
+        call = request.getCurrencyRates("EUR")
+        mHandler.post(object : Runnable {
+            override fun run() {
+                fetchData()
+                mHandler.postDelayed(this, 1000)
+            }
+        })
+    }
     //Method to fetch the data from the endpoint
     private fun fetchData() {
-        call = request.getCurrencyRates("EUR")
         call.clone().enqueue(object : Callback<CurrencyData> {
             override fun onResponse(
                 call: Call<CurrencyData>,
@@ -70,10 +73,8 @@ class DataHandler(val context : Context, val adapter : TestAdapter, val view : C
                     // TODO Verify that the base in adapter is equal to the response base
                     updateRates(result.rates)
                 }
-
+                //updating timer value
                 view.updateTimerText()
-                //Not sure what to do there
-                //updateText.text = "Updated at: " + date.toString("HH:mm:ss")
             }
 
             //method to catch failed calls
@@ -83,22 +84,19 @@ class DataHandler(val context : Context, val adapter : TestAdapter, val view : C
         })
     }
 
-
+    //initialization of the rates
     fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
-
+        //base currency to work with
         baseItem = RateItemObject(currency = baseCurrency)
         items.add(baseItem)
-
         for (rate in rates.keys) {
             if (rate == baseCurrency) {
                 // Base currency was already added explicitly
                 continue
             }
-
             items.add(RateItemObject(currency = rate))
         }
-
         updateRates(rates)
     }
 
@@ -118,7 +116,7 @@ class DataHandler(val context : Context, val adapter : TestAdapter, val view : C
             }
         }
         newestRates = rates
-        view.updateRecyclerViewData()
+        view.updateRecyclerViewData(newestRates)
     }
 
     override fun getUpdateTime(): Date {
