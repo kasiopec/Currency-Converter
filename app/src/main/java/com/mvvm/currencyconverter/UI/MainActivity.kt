@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         recyclerAdapter = TestAdapter(
+            this,
             mDataHandler!!.getItemsData(),
             mDataHandler!!.getRates(),
             mDataHandler!!.receiveBaseItem(),
@@ -62,7 +63,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     }
 
     override fun updateTimerText() {
-        updateText.text = "Updated at: " + mDataHandler?.getUpdateTime()?.toString("HH:mm:ss")
+        val updateTime = mDataHandler?.getUpdateTime()?.toString("HH:mm:ss")
+        updateText.text = getString(R.string.update_text, updateTime.toString())
     }
 
     override fun updateRecyclerViewData(newestRates: Map<String, Double>) {

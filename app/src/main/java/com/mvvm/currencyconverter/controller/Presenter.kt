@@ -18,7 +18,6 @@ class Presenter(val view : Contract.View):Contract.Presenter{
     private val items = mutableListOf<RateItemObject>()
     var baseItem = RateItemObject("")
     var newestRates: Map<String, Double> = hashMapOf()
-
     val stopCall = false //handler stopper in case it's needed
     val mHandler = Handler(Looper.getMainLooper())
 
@@ -30,6 +29,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         return items
     }
 
+
+    //changes base currency for Json queries
     override fun updateJsonCall(currency: String) {
         call = request.getCurrencyRates(currency)
     }
@@ -42,6 +43,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         return baseItem
     }
 
+    //starts very first json requests
+    //and handler that calls for updates every second
     fun startFetching(){
         call = request.getCurrencyRates("EUR")
         mHandler.post(object : Runnable {
@@ -67,14 +70,11 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                 println(response.body())
 
                 val result = requireNotNull(response.body())
-                if (items.size == 0) {
-                    initialize(result.rates, result.base)
-                } else {
-                    // TODO Verify that the base in adapter is equal to the response base
-                    updateRates(result.rates)
-                }
-                //updating timer value
+                initialize(result.rates, result.base)
+
+                //update view
                 view.updateTimerText()
+                view.updateRecyclerViewData(newestRates)
             }
 
             //method to catch failed calls
@@ -84,7 +84,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         })
     }
 
-    //initialization of the rates
+    //initialization/mapping base currency to rates
     fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
         //base currency to work with
@@ -97,9 +97,17 @@ class Presenter(val view : Contract.View):Contract.Presenter{
             }
             items.add(RateItemObject(currency = rate))
         }
-        updateRates(rates)
+        newestRates = rates
+        //updateRates(rates)
     }
-
+    //TODO rate calcs to do here
+    private fun getRate(currency: String): Double =
+        if (currency == baseItem.currency) {
+            1.0
+        } else {
+            newestRates[currency] ?: 0.0
+        }
+    //TODO ask about moving this to adapter, sicne it is kinda his task
     fun updateRates(rates: Map<String, Double>) {
         for (position in 0 until items.size) {
             val item = items[position]
@@ -116,9 +124,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
             }
         }
         newestRates = rates
-        view.updateRecyclerViewData(newestRates)
     }
-
+    //gets current time -> update time
     override fun getUpdateTime(): Date {
         return Calendar.getInstance().time
     }

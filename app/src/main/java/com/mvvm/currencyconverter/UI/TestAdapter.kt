@@ -12,15 +12,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
 import com.mvvm.currencyconverter.data.RateItemObject
 import java.util.*
+import kotlin.math.abs
 
 class TestAdapter(
+    var context: Context,
     private val items: MutableList<RateItemObject>,
     private var newestRates: Map<String, Double>,
     private var baseItem: RateItemObject,
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<TestViewHolder>() {
     var baseAmount = 10.0
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TestViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.currency_item, parent, false)
@@ -31,9 +32,24 @@ class TestAdapter(
         return items.size
     }
 
+    //Updates recyclerview rates values
     fun refreshData(rates : Map<String, Double>){
+        for (position in 0 until items.size) {
+            val item = items[position]
+            if (item == baseItem) {
+                // The base item amount isn't updated as it was entered by the user
+                continue;
+            }
+
+            val oldRate = newestRates[item.currency]
+            val newRate = rates[item.currency]
+
+            if (oldRate != null && newRate != null && abs(oldRate - newRate) < 0.0005) {
+                continue;
+            }
+            notifyItemChanged(position)
+        }
         newestRates = rates
-        notifyItemRangeChanged(1, items.size-1)
     }
 
     private fun getRate(currency: String): Double =
@@ -42,7 +58,7 @@ class TestAdapter(
         } else {
             newestRates[currency] ?: 0.0
         }
-
+    //handles items swaps
     private fun updateBaseItem(item: RateItemObject) {
         if (baseItem == item) {
             // Nothing to update
@@ -64,7 +80,7 @@ class TestAdapter(
         val amountFormatted = "%.2f".format(amount)
 
         holder.currencyName.text = item.currency
-        holder.currencyRate.text = "1:$rate"
+        holder.currencyRate.text = context.resources.getString(R.string.rate_text, rate.toString())
         holder.currencyValue.text = amountFormatted
         holder.etCurrencyValue.setText(amountFormatted)
 
