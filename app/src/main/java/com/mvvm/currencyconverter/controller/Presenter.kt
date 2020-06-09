@@ -1,6 +1,5 @@
 package com.mvvm.currencyconverter.controller
 
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 
@@ -16,12 +15,13 @@ import kotlin.math.abs
 
 class Presenter(val view : Contract.View):Contract.Presenter{
     private val items = mutableListOf<RateItemObject>()
-    var baseItem = RateItemObject("")
+    private var baseItem: RateItemObject? = null
     var newestRates: Map<String, Double> = hashMapOf()
+
     val stopCall = false //handler stopper in case it's needed
     val mHandler = Handler(Looper.getMainLooper())
 
-    //Retrofit initialization
+    // Retrofit initialization
     private val request: CurrencyEndpointAPI = ServiceBuilder.buildService(CurrencyEndpointAPI::class.java)
     private lateinit var call: Call<CurrencyData>
 
@@ -29,6 +29,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         return items
     }
 
+    // TODO make an amount field on the RateItemObject (adapter doesn't know about amounts)
+    // TODO make an isBaseItem property on the RateItemObject
 
     //changes base currency for Json queries
     override fun updateJsonCall(currency: String) {
@@ -72,8 +74,9 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                 val result = requireNotNull(response.body())
                 initialize(result.rates, result.base)
 
+                val updateTime = Calendar.getInstance().time
                 //update view
-                view.updateTimerText()
+                view.updateTimerText(updateTime)
                 view.updateRecyclerViewData(newestRates)
             }
 
@@ -85,7 +88,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
     }
 
     //initialization/mapping base currency to rates
-    fun initialize(rates: Map<String, Double>, baseCurrency: String) {
+    private fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
         //base currency to work with
         baseItem = RateItemObject(currency = baseCurrency)
@@ -125,9 +128,6 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         }
         newestRates = rates
     }
-    //gets current time -> update time
-    override fun getUpdateTime(): Date {
-        return Calendar.getInstance().time
-    }
+
 
 }

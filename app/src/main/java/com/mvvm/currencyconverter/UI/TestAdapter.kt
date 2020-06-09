@@ -17,8 +17,12 @@ import kotlin.math.abs
 class TestAdapter(
     var context: Context,
     private val items: MutableList<RateItemObject>,
+    // TODO this goes out
     private var newestRates: Map<String, Double>,
+    // TODO this goes out
     private var baseItem: RateItemObject,
+
+    // TODO maybe wrap this more nicely
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<TestViewHolder>() {
     var baseAmount = 10.0
@@ -38,14 +42,14 @@ class TestAdapter(
             val item = items[position]
             if (item == baseItem) {
                 // The base item amount isn't updated as it was entered by the user
-                continue;
+                continue
             }
 
             val oldRate = newestRates[item.currency]
             val newRate = rates[item.currency]
 
             if (oldRate != null && newRate != null && abs(oldRate - newRate) < 0.0005) {
-                continue;
+                continue
             }
             notifyItemChanged(position)
         }

@@ -5,11 +5,10 @@ import java.util.*
 
 interface Contract {
     interface View{
-        fun updateTimerText()
+        fun updateTimerText(date : Date)
         fun updateRecyclerViewData(newestRates : Map<String, Double>)
     }
     interface Presenter{
-        fun getUpdateTime() : Date
         fun getItemsData() : MutableList<RateItemObject>
         fun receiveBaseItem() : RateItemObject
         fun updateJsonCall(currency : String)

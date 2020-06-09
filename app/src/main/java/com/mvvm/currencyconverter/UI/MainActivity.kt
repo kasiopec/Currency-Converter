@@ -1,8 +1,6 @@
 package com.mvvm.currencyconverter.UI
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -11,30 +9,28 @@ import com.mvvm.currencyconverter.controller.Contract
 import com.mvvm.currencyconverter.controller.Presenter
 import com.mvvm.currencyconverter.data.*
 import kotlinx.android.synthetic.main.activity_main.*
-import retrofit2.Call
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
 
 class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     lateinit var recyclerView: RecyclerView
     lateinit var recyclerAdapter: TestAdapter
-    private var mDataHandler: Presenter? = null
+    lateinit var presenter: Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mDataHandler = Presenter(this)
-        mDataHandler!!.startFetching()
+        presenter = Presenter(this)
+        presenter.startFetching()
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         recyclerAdapter = TestAdapter(
             this,
-            mDataHandler!!.getItemsData(),
-            mDataHandler!!.getRates(),
-            mDataHandler!!.receiveBaseItem(),
+            presenter.getItemsData(),
+            presenter.getRates(),
+            presenter.receiveBaseItem(),
             this
         )
         recyclerAdapter.setHasStableIds(false)
@@ -57,14 +53,14 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
 
     override fun onBaseItemUpdated(item: RateItemObject) {
         //requesting new rates for base currency
-        mDataHandler!!.updateJsonCall(item.currency)
+        presenter.updateJsonCall(item.currency)
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
     }
 
-    override fun updateTimerText() {
-        val updateTime = mDataHandler?.getUpdateTime()?.toString("HH:mm:ss")
-        updateText.text = getString(R.string.update_text, updateTime.toString())
+    override fun updateTimerText(date : Date) {
+        val updateTime = date.toString("HH:mm:ss")
+        updateText.text = getString(R.string.update_text, updateTime)
     }
 
     override fun updateRecyclerViewData(newestRates: Map<String, Double>) {
