@@ -10,22 +10,15 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
-import com.mvvm.currencyconverter.data.RateItemObject
-import java.util.*
-import kotlin.math.abs
+import com.mvvm.currencyconverter.data.RateItem
 
 class TestAdapter(
     var context: Context,
-    private val items: MutableList<RateItemObject>,
-    // TODO this goes out
-    private var newestRates: Map<String, Double>,
-    // TODO this goes out
-    private var baseItem: RateItemObject,
-
+    private val items: List<RateItem>,
     // TODO maybe wrap this more nicely
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<TestViewHolder>() {
-    var baseAmount = 10.0
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TestViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.currency_item, parent, false)
@@ -36,59 +29,17 @@ class TestAdapter(
         return items.size
     }
 
-    //Updates recyclerview rates values
-    fun refreshData(rates : Map<String, Double>){
-        for (position in 0 until items.size) {
-            val item = items[position]
-            if (item == baseItem) {
-                // The base item amount isn't updated as it was entered by the user
-                continue
-            }
 
-            val oldRate = newestRates[item.currency]
-            val newRate = rates[item.currency]
-
-            if (oldRate != null && newRate != null && abs(oldRate - newRate) < 0.0005) {
-                continue
-            }
-            notifyItemChanged(position)
-        }
-        newestRates = rates
-    }
-
-    private fun getRate(currency: String): Double =
-        if (currency == baseItem.currency) {
-            1.0
-        } else {
-            newestRates[currency] ?: 0.0
-        }
-    //handles items swaps
-    private fun updateBaseItem(item: RateItemObject) {
-        if (baseItem == item) {
-            // Nothing to update
-            return
-        }
-        baseItem = item
-        val originalPosition = items.indexOf(item)
-        Collections.swap(items, originalPosition, 0)
-        notifyItemMoved(originalPosition, 0)
-        notifyItemChanged(0)
-
-    }
 
     override fun onBindViewHolder(holder: TestViewHolder, position: Int) {
         val item = items[position]
-        val rate = getRate(item.currency)
-        // TODO Don't do any computation in the adapter, it should simply present items
-        val amount = rate * baseAmount
-        val amountFormatted = "%.2f".format(amount)
-
+        val amountFormatted = "%.2f".format(item.amount)
         holder.currencyName.text = item.currency
-        holder.currencyRate.text = context.resources.getString(R.string.rate_text, rate.toString())
+        holder.currencyRate.text = context.resources.getString(R.string.rate_text, item.rate.toString())
         holder.currencyValue.text = amountFormatted
         holder.etCurrencyValue.setText(amountFormatted)
 
-        if (item == baseItem) {
+        if (item.isBaseItem) {
             holder.currencyRate.visibility = View.VISIBLE
             holder.currencyValue.visibility = View.GONE
             holder.etCurrencyValue.visibility = View.VISIBLE
@@ -99,11 +50,16 @@ class TestAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            updateBaseItem(item)
-            listener.onBaseItemUpdated(item)
+            listener.onItemClicked(item)
         }
 
         holder.etCurrencyValue.onSubmit {
+            // TODO guard against non-numeric input
+            val newValue = holder.etCurrencyValue.text.toString().toDouble()
+            listener.onValueUpdated(item, newValue)
+            holder.etCurrencyValue.hideKeyboard()
+
+            /*
             if (item != baseItem) {
                 return@onSubmit
             }
@@ -112,6 +68,7 @@ class TestAdapter(
             baseAmount = holder.etCurrencyValue.text.toString().toDouble()
             notifyItemRangeChanged(0, items.size)
             holder.etCurrencyValue.hideKeyboard()
+            */
         }
     }
 

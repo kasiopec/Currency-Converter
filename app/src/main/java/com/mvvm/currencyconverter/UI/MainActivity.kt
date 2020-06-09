@@ -26,13 +26,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        recyclerAdapter = TestAdapter(
-            this,
-            presenter.getItemsData(),
-            presenter.getRates(),
-            presenter.receiveBaseItem(),
-            this
-        )
+        recyclerAdapter = TestAdapter(this, presenter.getItems(), this)
         recyclerAdapter.setHasStableIds(false)
         recyclerView.adapter = recyclerAdapter
     }
@@ -43,19 +37,17 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         return formatter.format(this)
     }
 
-    override fun onBaseItemUpdated(item: RateItem) {
-        //TODO Remove it from the interface later, just some leftovers
+    override fun onItemClicked(item: RateItem) {
         //requesting new rates for base currency
-        //call = request.getCurrencyRates(recyclerAdapter.baseItem.currency)
-        //scrolling to recyclerview top
-        //recyclerView.layoutManager!!.scrollToPosition(0)
-    }
+        presenter.itemClicked(item)
 
-    override fun onBaseItemUpdated(item: RateItemObject) {
-        //requesting new rates for base currency
-        presenter.updateJsonCall(item.currency)
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
+    }
+
+    override fun onValueUpdated(item: RateItem, newValue: Double) {
+        //presenter.updateValue()
+        TODO("Move this to presenter and update the base item from there")
     }
 
     override fun updateTimerText(date : Date) {
@@ -63,11 +55,19 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         updateText.text = getString(R.string.update_text, updateTime)
     }
 
-    override fun updateRecyclerViewData(newestRates: Map<String, Double>) {
-        //TODO add refresh data method inside adapter and notifydatasetchanged?
-        recyclerAdapter.refreshData(newestRates)
-
+    override fun notifyListItemsUpdated() {
+        recyclerAdapter.notifyDataSetChanged()
     }
+
+    override fun notifyListItemMoved(startPos: Int, endPos: Int) {
+        recyclerAdapter.notifyItemMoved(startPos, endPos)
+    }
+
+    override fun notifyListItemUpdated(itemPos: Int) {
+        recyclerAdapter.notifyItemChanged(itemPos)
+    }
+
+
 }
 
 

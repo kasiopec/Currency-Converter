@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.mvvm.currencyconverter.controller.Contract
 import com.mvvm.currencyconverter.controller.Presenter
 import com.mvvm.currencyconverter.data.CurrencyData
+import com.mvvm.currencyconverter.data.DataModel
+import com.mvvm.currencyconverter.data.RateItem
 import org.junit.Test
 import org.junit.Assert.*
 import java.util.*
@@ -29,7 +31,35 @@ class DataMappingTest {
         assertEquals("EUR", parsed.base)
     }
 }
+class FakePresenter: Contract.Presenter {
 
+    val list = listOf<RateItem>()
+    override fun itemClicked(item: RateItem) {
+
+    }
+
+    override fun getItems(): List<RateItem> {
+        return list
+    }
+
+    override fun notifyListItemsUpdated() {
+    }
+
+}
+
+class ModelTest {
+    fun createModel() :DataModel {
+        val model = DataModel(FakePresenter())
+        // call model.refreshData() with some data
+
+        return model
+    }
+
+    fun test1() {
+        // test that baseItem property is updated after setting it to a new value
+        // test that baseItem property ignores null assignment
+    }
+}
 
 class MainActivityPresenterTest{
 
@@ -54,7 +84,11 @@ class MainActivityPresenterTest{
             }
         }
 
-        override fun updateRecyclerViewData(newestRates: Map<String, Double>) {
+        override fun notifyListItemsUpdated() {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        fun updateRecyclerViewData(newestRates: Map<String, Double>) {
             if(newestRates.isNotEmpty()){
                 displayedRates = true
             }
