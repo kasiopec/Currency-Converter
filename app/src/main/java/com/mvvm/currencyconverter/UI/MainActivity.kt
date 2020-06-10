@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         recyclerAdapter = TestAdapter(this, presenter.getItems(), this)
-        recyclerAdapter.setHasStableIds(false)
+        //recyclerAdapter.setHasStableIds(true)
         recyclerView.adapter = recyclerAdapter
     }
 
@@ -40,14 +40,12 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     override fun onItemClicked(item: RateItem) {
         //requesting new rates for base currency
         presenter.itemClicked(item)
-
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
     }
 
     override fun onValueUpdated(item: RateItem, newValue: Double) {
-        //presenter.updateValue()
-        TODO("Move this to presenter and update the base item from there")
+        presenter.updateAmountValue(item, newValue)
     }
 
     override fun updateTimerText(date : Date) {
@@ -56,6 +54,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     }
 
     override fun notifyListItemsUpdated() {
+        //val item = presenter.getItems()[1]
+       // println("CALLED ON FETCH"+item.rate + item.currency + item.amount)
         recyclerAdapter.notifyDataSetChanged()
     }
 
@@ -65,6 +65,10 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
 
     override fun notifyListItemUpdated(itemPos: Int) {
         recyclerAdapter.notifyItemChanged(itemPos)
+    }
+
+    override fun notifyListItemRangeUpdated(startPost: Int, size: Int) {
+        recyclerAdapter.notifyItemRangeChanged(startPost, size)
     }
 
 

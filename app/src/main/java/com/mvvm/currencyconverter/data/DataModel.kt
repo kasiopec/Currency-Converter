@@ -13,21 +13,15 @@ class DataModel(private val presenter: Contract.Presenter) {
                 // Nothing to update, and we don't permit setting null
                 return
             }
-
+            val originalPosition = items.indexOf(value)
             // The old base item is no longer the base item
-            field?.isBaseItem = false
             value.isBaseItem = true
-
+            field?.isBaseItem = false
             field = value
 
-            val originalPosition = items.indexOf(value)
             Collections.swap(items, originalPosition, 0)
-
             presenter.notifyListItemMoved(originalPosition, 0)
             presenter.notifyListItemUpdated(0)
-            // TODO Implement moving and updating a single item instead
-            //notifyItemMoved(originalPosition, 0)
-            //notifyItemChanged(0)
         }
 
     var newestRates: Map<String, Double> = hashMapOf()
@@ -37,7 +31,7 @@ class DataModel(private val presenter: Contract.Presenter) {
         return items
     }
 
-    fun updateItemValue(newAmount : Double){
+    fun updateAmountValue(newAmount : Double){
         baseItem?.amount = newAmount
     }
 
@@ -69,8 +63,8 @@ class DataModel(private val presenter: Contract.Presenter) {
             //TODO tell presenter about relevant data updates
             item.rate = newRate
             item.amount = newRate * theBaseItem.amount
+            presenter.notifyListItemUpdated(position)
         }
-        presenter.notifyListItemsUpdated()
         newestRates = rates
     }
 
@@ -78,27 +72,72 @@ class DataModel(private val presenter: Contract.Presenter) {
     //initialization/mapping base currency to rates
     fun initialize(rates: Map<String, Double>, baseCurrency: String) {
         items.clear()
+        val newBaseItem = RateItem(currency = baseCurrency, isBaseItem = true)
+        if(baseItem == null){
+            newBaseItem.amount = 10.0
+            newBaseItem.rate = 1.0
+            items.add(newBaseItem)
+            baseItem = newBaseItem
+        }else{
+            items.add(newBaseItem)
+        }
+        val theBaseItem = baseItem ?: return
         for (rate in rates.keys) {
             if (rate == baseCurrency) {
                 // Base currency was already added explicitly
                 continue
             }
 
-            // TODO set rate and amount here directly (don't call refreshData below)
+            val item = RateItem(currency = rate)
+            val oldRate = newestRates[rate]
+            val newRate = rates[rate] ?: continue
+            println(oldRate.toString()+ " : " + newRate)
 
-            items.add(RateItem(currency = rate))
+            if (oldRate != null && abs(oldRate - newRate) < 0.0005) {
+                item.rate = oldRate
+                item.amount = oldRate * theBaseItem.amount
+            }else{
+                item.rate = newRate
+                item.amount = newRate * theBaseItem.amount
+            }
+
+            // TODO set rate and amount here directly (don't call refreshData below)
+            items.add(item)
+            presenter.notifyListItemRangeUpdated(1, items.size-1)
+        }
+        //base currency to work with
+        newestRates = rates
+        //refreshData(rates)
+    }
+
+    /*    fun initialize(rates: Map<String, Double>, baseCurrency: String) {
+            items.clear()
+            //base currency to work with
+            val newBaseItem = RateItem(currency = baseCurrency, isBaseItem = true)
+            newBaseItem.amount = 10.0
+            newBaseItem.rate = 1.0
+            items.add(newBaseItem)
+            for (rate in rates.keys) {
+                if (rate == baseCurrency) {
+                    // Base currency was already added explicitly
+                    continue
+                }
+
+                // TODO set rate and amount here directly (don't call refreshData below)
+
+                items.add(RateItem(currency = rate))
+            }
+
+
+
+            //newestRates = rates
+            refreshData(rates)
+            //presenter.notifyListItemsUpdated()
+            //updateRates(rates)
         }
 
-        //base currency to work with
-        val newBaseItem = RateItem(currency = baseCurrency, isBaseItem = true)
-        newBaseItem.amount = 10.0
-        newBaseItem.rate = 1.0
-        items.add(newBaseItem)
-        baseItem = newBaseItem
+        */
 
-        //newestRates = rates
-        refreshData(rates)
-        presenter.notifyListItemsUpdated()
-        //updateRates(rates)
-    }
+
+
 }

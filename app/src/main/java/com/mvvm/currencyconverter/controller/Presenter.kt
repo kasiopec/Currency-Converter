@@ -43,8 +43,12 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         view.notifyListItemUpdated(itemPos)
     }
 
-    override fun updateValue(item: RateItem, value: Double) {
-       dataModel.updateItemValue(value)
+    override fun notifyListItemRangeUpdated(startPost: Int, size: Int) {
+        view.notifyListItemRangeUpdated(startPost, size)
+    }
+
+    override fun updateAmountValue(item: RateItem, value: Double) {
+       dataModel.updateAmountValue(value)
     }
 
 
@@ -80,7 +84,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                 val updateTime = Calendar.getInstance().time
                 //update view
                 view.updateTimerText(updateTime)
-                view.notifyListItemsUpdated()
+                //view.notifyListItemsUpdated()
             }
 
             //method to catch failed calls

@@ -11,6 +11,7 @@ interface Contract {
         fun notifyListItemsUpdated()
         fun notifyListItemMoved(startPos : Int, endPos : Int)
         fun notifyListItemUpdated(itemPos : Int)
+        fun notifyListItemRangeUpdated(startPost : Int, size : Int)
     }
 
     interface Presenter {
@@ -19,6 +20,7 @@ interface Contract {
         fun notifyListItemsUpdated()
         fun notifyListItemMoved(startPos : Int, endPos : Int)
         fun notifyListItemUpdated(itemPos : Int)
-        fun updateValue(item : RateItem, value : Double)
+        fun notifyListItemRangeUpdated(startPost : Int, size : Int)
+        fun updateAmountValue(item : RateItem, value : Double)
     }
 }
