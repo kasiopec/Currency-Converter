@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
         recyclerView.layoutManager!!.scrollToPosition(0)
     }
 
-    override fun onValueUpdated(item: RateItem, newValue: Double) {
-        presenter.updateAmountValue(item, newValue)
+    override fun onValueUpdated(value : Double) {
+        presenter.updateAmountValue(value)
     }
 
     override fun updateTimerText(date : Date) {

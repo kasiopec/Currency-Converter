@@ -4,7 +4,7 @@ import com.mvvm.currencyconverter.data.RateItem
 
 interface OnItemClickListener {
     fun onItemClicked(item: RateItem)
-    fun onValueUpdated(item : RateItem, newValue : Double)
+    fun onValueUpdated(value : Double)
 
     // TODO add a function when an item is clicked (rename the onBaseItemUpdated)
     // TODO add a function to be called when an edit is made

@@ -40,7 +40,7 @@ class TestAdapter(
         holder.etCurrencyValue.setText(amountFormatted)
 
         if (item.isBaseItem) {
-            holder.currencyRate.visibility = View.VISIBLE
+            holder.currencyRate.visibility = View.INVISIBLE
             holder.currencyValue.visibility = View.GONE
             holder.etCurrencyValue.visibility = View.VISIBLE
         } else {
@@ -56,19 +56,11 @@ class TestAdapter(
         holder.etCurrencyValue.onSubmit {
             // TODO guard against non-numeric input
             val newValue = holder.etCurrencyValue.text.toString().toDouble()
-            listener.onValueUpdated(item, newValue)
-            holder.etCurrencyValue.hideKeyboard()
-
-            /*
-            if (item != baseItem) {
+            if(newValue.toString()==""){
                 return@onSubmit
             }
-
-            // TODO guard against non-numeric input
-            baseAmount = holder.etCurrencyValue.text.toString().toDouble()
-            notifyItemRangeChanged(0, items.size)
+            listener.onValueUpdated(newValue)
             holder.etCurrencyValue.hideKeyboard()
-            */
         }
     }
 

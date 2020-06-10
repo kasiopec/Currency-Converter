@@ -16,6 +16,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
 
     val stopCall = false //handler stopper in case it's needed
     val mHandler = Handler(Looper.getMainLooper())
+    var isInitialized = false
 
     // Retrofit initialization
     private val request: CurrencyEndpointAPI = ServiceBuilder.buildService(CurrencyEndpointAPI::class.java)
@@ -47,9 +48,10 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         view.notifyListItemRangeUpdated(startPost, size)
     }
 
-    override fun updateAmountValue(item: RateItem, value: Double) {
-       dataModel.updateAmountValue(value)
+    override fun updateAmountValue(value: Double) {
+        dataModel.updateAmountValue(value)
     }
+
 
 
     //starts very first json requests
@@ -79,12 +81,16 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                 println(response.body())
 
                 val result = requireNotNull(response.body())
-                dataModel.initialize(result.rates, result.base)
-
+                if(!isInitialized){
+                    dataModel.initialize(result.rates, result.base)
+                    isInitialized = true
+                }else{
+                    dataModel.refreshData(result.rates)
+                }
                 val updateTime = Calendar.getInstance().time
                 //update view
                 view.updateTimerText(updateTime)
-                //view.notifyListItemsUpdated()
+
             }
 
             //method to catch failed calls

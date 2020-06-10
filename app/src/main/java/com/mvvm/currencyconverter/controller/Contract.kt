@@ -21,6 +21,6 @@ interface Contract {
         fun notifyListItemMoved(startPos : Int, endPos : Int)
         fun notifyListItemUpdated(itemPos : Int)
         fun notifyListItemRangeUpdated(startPost : Int, size : Int)
-        fun updateAmountValue(item : RateItem, value : Double)
+        fun updateAmountValue(value : Double)
     }
 }
