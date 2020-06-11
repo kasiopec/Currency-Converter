@@ -18,12 +18,11 @@ class DataModel(private val presenter: Contract.Presenter) {
             value.isBaseItem = true
             field?.isBaseItem = false
             field = value
-            var originalPosition = items.indexOf(value)
+            val originalPosition = items.indexOf(value)
             Collections.swap(items, originalPosition, 0)
             presenter.notifyListItemMoved(originalPosition, 0)
             presenter.notifyListItemUpdated(0)
             presenter.notifyListItemUpdated(originalPosition)
-
         }
     //Returns items list for later use (adapter)
     fun getItemsData(): MutableList<CurrencyItem> {

@@ -65,7 +65,6 @@
                 android:layout_width="100dp"
                 android:layout_height="0dp"
                 android:layout_marginEnd="8dp"
-                android:cursorVisible="false"
                 android:ems="10"
                 android:imeOptions="actionDone"
                 android:digits="0123456789"

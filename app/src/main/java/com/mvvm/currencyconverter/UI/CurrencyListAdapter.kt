@@ -1,6 +1,7 @@
 package com.mvvm.currencyconverter.UI
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,8 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
 import com.mvvm.currencyconverter.data.CurrencyItem
@@ -15,7 +18,6 @@ import com.mvvm.currencyconverter.data.CurrencyItem
 class CurrencyListAdapter(
     var context: Context,
     private val items: List<CurrencyItem>,
-    // TODO maybe wrap this more nicely
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<TestViewHolder>() {
 
@@ -41,10 +43,12 @@ class CurrencyListAdapter(
             holder.currencyRate.visibility = View.INVISIBLE
             holder.currencyValue.visibility = View.GONE
             holder.etCurrencyValue.visibility = View.VISIBLE
+            holder.card.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorSkyBlue))
         } else {
             holder.currencyValue.visibility = View.VISIBLE
             holder.etCurrencyValue.visibility = View.GONE
             holder.currencyRate.visibility = View.VISIBLE
+            holder.card.setCardBackgroundColor(Color.WHITE)
         }
 
         holder.itemView.setOnClickListener {
@@ -52,13 +56,15 @@ class CurrencyListAdapter(
         }
 
         holder.etCurrencyValue.onSubmit {
-            // TODO guard against non-numeric input
-            val newValue = holder.etCurrencyValue.text.toString().toDouble()
-            if(newValue.toString()==""){
+            //non empty field check
+            if (holder.etCurrencyValue.text.toString().trim().isNotEmpty() ||
+                holder.etCurrencyValue.text.toString().trim().isNotBlank()) {
+                val newValue = holder.etCurrencyValue.text.toString()
+                listener.onValueUpdated(newValue.toDouble())
+                holder.etCurrencyValue.hideKeyboard()
+            } else {
                 return@onSubmit
             }
-            listener.onValueUpdated(newValue)
-            holder.etCurrencyValue.hideKeyboard()
         }
     }
 
@@ -82,4 +88,5 @@ class TestViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     val currencyRate: TextView = itemView.findViewById(R.id.currencyRate)
     val currencyValue: TextView = itemView.findViewById(R.id.currencyValue)
     val etCurrencyValue: EditText = itemView.findViewById(R.id.et_currencyValue)
+    val card : CardView = itemView.findViewById(R.id.cardView)
 }
