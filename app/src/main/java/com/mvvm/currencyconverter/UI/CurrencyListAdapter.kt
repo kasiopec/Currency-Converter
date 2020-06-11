@@ -10,11 +10,11 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mvvm.currencyconverter.R
-import com.mvvm.currencyconverter.data.RateItem
+import com.mvvm.currencyconverter.data.CurrencyItem
 
-class TestAdapter(
+class CurrencyListAdapter(
     var context: Context,
-    private val items: List<RateItem>,
+    private val items: List<CurrencyItem>,
     // TODO maybe wrap this more nicely
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<TestViewHolder>() {
@@ -28,8 +28,6 @@ class TestAdapter(
     override fun getItemCount(): Int {
         return items.size
     }
-
-
 
     override fun onBindViewHolder(holder: TestViewHolder, position: Int) {
         val item = items[position]
@@ -72,7 +70,7 @@ class TestAdapter(
             true
         }
     }
-
+    //hides keyboard
     private fun View.hideKeyboard() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)

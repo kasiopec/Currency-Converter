@@ -1,6 +1,7 @@
 package com.mvvm.currencyconverter.data
 
-data class RateItem(
+//Items which are created for
+data class CurrencyItem(
     val currency: String,
     var isBaseItem : Boolean = false
 ) {

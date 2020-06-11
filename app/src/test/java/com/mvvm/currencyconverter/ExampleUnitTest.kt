@@ -2,22 +2,13 @@ package com.mvvm.currencyconverter
 
 
 import com.google.gson.Gson
-import com.mvvm.currencyconverter.UI.MainActivity
 import com.mvvm.currencyconverter.controller.Contract
-import com.mvvm.currencyconverter.controller.Presenter
 import com.mvvm.currencyconverter.data.CurrencyData
 import com.mvvm.currencyconverter.data.DataModel
-import com.mvvm.currencyconverter.data.RateItem
-import org.junit.Assert
+import com.mvvm.currencyconverter.data.CurrencyItem
 import org.junit.Test
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.junit.MockitoJUnitRunner
 import java.lang.Exception
-import java.util.*
 import kotlin.collections.HashMap
 
 /**
@@ -103,14 +94,14 @@ class ModelTest {
 }
 
 class FakePresenter: Contract.Presenter {
-    val list = listOf<RateItem>()
+    val list = listOf<CurrencyItem>()
     val model  = DataModel(this)
     var updatedtimes = 0
-    override fun itemClicked(item: RateItem) {
+    override fun itemClicked(item: CurrencyItem) {
         model.baseItem = item
     }
 
-    override fun getItems(): List<RateItem> {
+    override fun getItems(): List<CurrencyItem> {
         return list
     }
 

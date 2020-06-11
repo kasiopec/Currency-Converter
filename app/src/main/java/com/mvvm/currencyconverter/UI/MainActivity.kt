@@ -14,48 +14,51 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), OnItemClickListener, Contract.View {
     lateinit var recyclerView: RecyclerView
-    lateinit var recyclerAdapter: TestAdapter
+    lateinit var recyclerAdapter: CurrencyListAdapter
     lateinit var presenter: Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         presenter = Presenter(this)
         presenter.startFetching()
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        recyclerAdapter = TestAdapter(this, presenter.getItems(), this)
-        //recyclerAdapter.setHasStableIds(true)
+        recyclerAdapter = CurrencyListAdapter(this, presenter.getItems(), this)
         recyclerView.adapter = recyclerAdapter
     }
 
-    //data formatter for the text view
-    fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
-        val formatter = SimpleDateFormat(format, locale)
-        return formatter.format(this)
-    }
-
-    override fun onItemClicked(item: RateItem) {
-        //requesting new rates for base currency
+    //handles item click in the recyclerView
+    override fun onItemClicked(item: CurrencyItem) {
         presenter.itemClicked(item)
         //scrolling to recyclerview top
         recyclerView.layoutManager!!.scrollToPosition(0)
     }
 
+    //handles submit button on the keyboard
     override fun onValueUpdated(value : Double) {
         presenter.updateAmountValue(value)
     }
 
+    //handles timer text updates
     override fun updateTimerText(date : Date) {
         val updateTime = date.toString("HH:mm:ss")
         updateText.text = getString(R.string.update_text, updateTime)
     }
 
+    //data formatter for the text view
+    private fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
+        val formatter = SimpleDateFormat(format, locale)
+        return formatter.format(this)
+    }
+
+    /*
+    * Block of adapter update functions
+    * */
     override fun notifyListItemsUpdated() {
-        //val item = presenter.getItems()[1]
-       // println("CALLED ON FETCH"+item.rate + item.currency + item.amount)
         recyclerAdapter.notifyDataSetChanged()
     }
 

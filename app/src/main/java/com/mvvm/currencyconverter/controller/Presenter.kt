@@ -2,36 +2,43 @@ package com.mvvm.currencyconverter.controller
 
 import android.os.Handler
 import android.os.Looper
-import com.mvvm.currencyconverter.UI.TestAdapter
 import com.mvvm.currencyconverter.data.*
 
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
-import kotlin.math.abs
 
 class Presenter(val view : Contract.View):Contract.Presenter{
-    val dataModel = DataModel(this)
 
+    val dataModel = DataModel(this)
+    var isInitialized = false
     val stopCall = false //handler stopper in case it's needed
     val mHandler = Handler(Looper.getMainLooper())
-    var isInitialized = false
 
     // Retrofit initialization
-    private val request: CurrencyEndpointAPI = ServiceBuilder.buildService(CurrencyEndpointAPI::class.java)
+    private val request: CurrencyEndpointAPI = ServiceBuilder
+        .buildService(CurrencyEndpointAPI::class.java)
     private lateinit var call: Call<CurrencyData>
 
-    //changes base currency for Json queries
-    override fun itemClicked(item: RateItem) {
+    //changes base currency and updates Json call
+    override fun itemClicked(item: CurrencyItem) {
         dataModel.baseItem = item
         call = request.getCurrencyRates(item.currency)
     }
 
-    override fun getItems() : List<RateItem>{
+    //Gets the list of the items from the data model
+    override fun getItems() : List<CurrencyItem>{
         return dataModel.getItemsData()
     }
+    //Updates value of the base item
+    override fun updateAmountValue(value: Double) {
+        dataModel.updateAmountValue(value)
+    }
 
+    /*
+    * Block of adapter update functions
+    * */
     override fun notifyListItemsUpdated() {
         view.notifyListItemsUpdated()
     }
@@ -47,12 +54,6 @@ class Presenter(val view : Contract.View):Contract.Presenter{
     override fun notifyListItemRangeUpdated(startPost: Int, size: Int) {
         view.notifyListItemRangeUpdated(startPost, size)
     }
-
-    override fun updateAmountValue(value: Double) {
-        dataModel.updateAmountValue(value)
-    }
-
-
 
     //starts very first json requests
     //and handler that calls for updates every second
@@ -77,10 +78,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                     println("Code: " + response.code())
                     return
                 }
-                println("Code: $response")
-                println(response.body())
-
                 val result = requireNotNull(response.body())
+                //check to initialize items once otherwise just refresh data
                 if(!isInitialized){
                     dataModel.initialize(result.rates, result.base)
                     isInitialized = true
@@ -88,11 +87,8 @@ class Presenter(val view : Contract.View):Contract.Presenter{
                     dataModel.refreshData(result.rates)
                 }
                 val updateTime = Calendar.getInstance().time
-                //update view
                 view.updateTimerText(updateTime)
-
             }
-
             //method to catch failed calls
             override fun onFailure(call: Call<CurrencyData>, t: Throwable) {
                 println(t.message)
