@@ -51,15 +51,11 @@ class ModelTest {
         val newEnteredValue = 20.0
         model.updateAmountValue(newEnteredValue)
         assertEquals(newEnteredValue, model.baseItem?.amount)
-        // test that baseItem property is updated after setting it to a new value
-        // test that baseItem property ignores null assignment
     }
     @Test
     fun shouldInitBaseItemPropertyAsEuro(){
         createModel()
         assertEquals("EUR", model.baseItem?.currency)
-        // test that baseItem property is updated after setting it to a new value
-        // test that baseItem property ignores null assignment
     }
 
     @Test

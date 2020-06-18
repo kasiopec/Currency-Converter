@@ -25,6 +25,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
     override fun itemClicked(item: CurrencyItem) {
         dataModel.baseItem = item
         call = request.getCurrencyRates(item.currency)
+        fetchData()
     }
 
     //Gets the list of the items from the data model
@@ -67,7 +68,7 @@ class Presenter(val view : Contract.View):Contract.Presenter{
         })
     }
     //Method to fetch the data from the endpoint
-    private fun fetchData() {
+     fun fetchData() {
         call.clone().enqueue(object : Callback<CurrencyData> {
             override fun onResponse(
                 call: Call<CurrencyData>,
